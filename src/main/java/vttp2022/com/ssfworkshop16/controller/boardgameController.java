@@ -55,8 +55,8 @@ public class boardgameController {
     }
 
     @PutMapping(path = "/{bgId}")
-    public ResponseEntity<boardgame> updateGameBoard(@RequestBody boardgame bg) {
-        int mResult = service.update(bg);
+    public ResponseEntity<boardgame> updateGameBoard(@RequestBody boardgame bg, @PathVariable(value="bgId") String bgId) {
+        int mResult = service.update(bg,bgId);
         if (mResult > 0)
             bg.setUpdateCount(mResult);
         return ResponseEntity.ok(bg);

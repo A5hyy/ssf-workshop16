@@ -38,12 +38,12 @@ public class BoardgameRedis implements BoardgameRepo{
     }
     
     @Override
-    public int update(final boardgame bg) {
+    public int update(final boardgame bg,String bgId) {
         logger.info("Save mastermind > " + logger);
         if (bg.isUpsert())
             redisTemplate.opsForValue().setIfAbsent(bg.getId(), bg);
         else
-            redisTemplate.opsForValue().setIfPresent(bg.getId(), bg);
+            redisTemplate.opsForValue().setIfPresent(bgId, bg);
         boardgame result = (boardgame) redisTemplate.opsForValue().get(bg.getId());
         if (result != null)
             return 1;

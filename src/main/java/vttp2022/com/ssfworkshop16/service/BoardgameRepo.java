@@ -8,6 +8,6 @@ public interface BoardgameRepo {
 
     public int save(final boardgame bg);
     public boardgame findById(final String bgId);
-    public int update(final boardgame bg);
+    public int update(final boardgame bg,String bgId);
     
 }
