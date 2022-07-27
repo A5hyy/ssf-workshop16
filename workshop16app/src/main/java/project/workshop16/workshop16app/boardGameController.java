@@ -44,7 +44,10 @@ public class boardGameController {
         //body = reader.readObject();
         //System.out.println("INSIDE POST-MAPPING METHOD - BODY: " + body);
         location = new URI("http://localhost:8080/api/boardgame");
-        service.save(checkers);
+        int result = service.save(checkers); //If doesn't exist, 1. Else, 0;
+        if(result > 0) {
+            checkers.setInsertCount(result);
+        }
         JsonObject response = Json.createObjectBuilder()
                                     .add("firstName", "GX")
                                     .add("lastName", "Legend")
@@ -60,24 +63,25 @@ public class boardGameController {
     }
 
     @GetMapping(path="/boardgame/{boardGameId}")
-    public ResponseEntity<String> getBoardGame(@PathVariable String boardGameId) {
-        String game = service.findBoardGame(boardGameId);
+    public ResponseEntity<Checkers> getBoardGame(@PathVariable String boardGameId) {
+        Checkers game = service.findBoardGame(boardGameId);
         JsonObject body;
-        try(InputStream is = new ByteArrayInputStream(game.getBytes())) {
-            JsonReader reader = Json.createReader(is);
-            body = reader.readObject();
-            return ResponseEntity.ok().body(body.toString());
+        try {
+            //InputStream is = new ByteArrayInputStream(game.getBytes());
+            //JsonReader reader = Json.createReader(is);
+            //body = reader.readObject();
+            return ResponseEntity.ok().body(game);
         } catch (Exception ex) {
             body = Json.createObjectBuilder().add("error", ex.getMessage()).build();
-            return ResponseEntity.internalServerError().body(body.toString());
+            return ResponseEntity.internalServerError().build();
         }
     }
 
     @PutMapping(path="/boardgame/{boardGameId}")
-    public ResponseEntity<Checkers> updateBoardGame(@RequestBody Checkers checkerObj) {
-        int mResult = service.update(checkerObj);
-        if (mResult > 0)
-            checkerObj.setUpdateCount(mResult);
+    public ResponseEntity<Checkers> updateBoardGame(@RequestBody Checkers checkerObj,
+                                                    @PathVariable String boardGameId) {
+        System.out.println("BEFORE UPDATE: " + checkerObj.getId());
+        int mResult = service.update(checkerObj, boardGameId);
         return ResponseEntity.ok(checkerObj);
     }
 
