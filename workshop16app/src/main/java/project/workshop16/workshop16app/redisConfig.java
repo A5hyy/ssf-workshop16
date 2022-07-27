@@ -1,12 +1,7 @@
 package project.workshop16.workshop16app;
 
-import java.nio.charset.Charset;
 import java.util.Optional;
-import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.data.redis.RedisProperties.Jedis;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
@@ -14,9 +9,10 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisClientConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
-import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+
+import project.workshop16.workshop16app.model.Checkers;
 
 
 @Configuration
@@ -52,8 +48,6 @@ public class redisConfig {
     //     return template;
     // } 
 
-    private static final Logger logger = LoggerFactory.getLogger(redisConfig.class);
-
     @Value("${spring.redis.host}")
     private String redisHost;
 
@@ -63,32 +57,27 @@ public class redisConfig {
     @Value("${spring.redis.password}")
     private String redisPassword;
 
-    @Bean
+    @Value("${spring.redis.database}")
+    private String redisDatabase;
+
+    @Bean(name = "games")
     @Scope("singleton")
-    public RedisTemplate<String, Object> redisTemplate() {
+    public RedisTemplate<String, Checkers> redisTemplate() {
         final RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
         config.setHostName(redisHost);
         config.setPort(redisPort.get());
         config.setPassword(redisPassword);
+        Jackson2JsonRedisSerializer jackson2JsonJsonSerializer = new Jackson2JsonRedisSerializer(Checkers.class);
 
         final JedisClientConfiguration jedisClient = JedisClientConfiguration.builder().build();
         final JedisConnectionFactory jedisFac = new JedisConnectionFactory(config, jedisClient);
         jedisFac.afterPropertiesSet();
-        logger.info("redis host port > {redisHost} {redisPort}", redisHost, redisPort);
-        RedisTemplate<String, Object> template = new RedisTemplate();
+        RedisTemplate<String, Checkers> template = new RedisTemplate<String, Checkers>();
         template.setConnectionFactory(jedisFac);
-
-        // Charset charset = Charset.forName("UTF-8");
-        // StringRedisSerializer sds = new StringRedisSerializer();
-        // template.setValueSerializer(sds);
-        // template.setKeySerializer(sds);
-        
         template.setKeySerializer(new StringRedisSerializer());
-        RedisSerializer<Object> serializer = new JdkSerializationRedisSerializer(getClass().getClassLoader());
-        template.setValueSerializer(
-            serializer
-        );
+        template.setValueSerializer(jackson2JsonJsonSerializer);
+        template.setHashKeySerializer(template.getKeySerializer());
+        template.setHashValueSerializer(template.getValueSerializer());
         return template;
     }
-
 }

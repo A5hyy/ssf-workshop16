@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonReader;
+import project.workshop16.workshop16app.model.Checkers;
 
 /*
 PS C:\Users\vans_\sdf-workshop1> 
@@ -32,16 +34,17 @@ public class boardGameController {
     redisService service;
 
     @PostMapping(path="/boardgame", consumes="application/json")
-    public ResponseEntity<String> postUser(@RequestBody String payload) {
-    JsonObject body;
+    public ResponseEntity<Checkers> postUser(@RequestBody Checkers checkers) {
+    //JsonObject body;
     URI location;
 
-    try(InputStream is = new ByteArrayInputStream(payload.getBytes())) {
-        JsonReader reader = Json.createReader(is);
-        body = reader.readObject();
-        System.out.println(body);
+    try {
+        //InputStream is = new ByteArrayInputStream(payload.getBytes())
+        //JsonReader reader = Json.createReader(is);
+        //body = reader.readObject();
+        //System.out.println("INSIDE POST-MAPPING METHOD - BODY: " + body);
         location = new URI("http://localhost:8080/api/boardgame");
-        service.save(body);
+        service.save(checkers);
         JsonObject response = Json.createObjectBuilder()
                                     .add("firstName", "GX")
                                     .add("lastName", "Legend")
@@ -49,17 +52,33 @@ public class boardGameController {
                                     .add("address", "25 Bleecker St")
                                     .build();
 
-        return ResponseEntity.created(location).body(response.toString());
+        return ResponseEntity.ok().body(checkers);
     } catch (Exception ex) {
-        body = Json.createObjectBuilder().add("error", ex.getMessage()).build();
-        return ResponseEntity.internalServerError().body(body.toString());
+        //body = Json.createObjectBuilder().add("error", ex.getMessage()).build();
+        return ResponseEntity.internalServerError().build();
     }
     }
 
     @GetMapping(path="/boardgame/{boardGameId}")
     public ResponseEntity<String> getBoardGame(@PathVariable String boardGameId) {
-        service.findBoardGame(boardGameId);
-        return null;
+        String game = service.findBoardGame(boardGameId);
+        JsonObject body;
+        try(InputStream is = new ByteArrayInputStream(game.getBytes())) {
+            JsonReader reader = Json.createReader(is);
+            body = reader.readObject();
+            return ResponseEntity.ok().body(body.toString());
+        } catch (Exception ex) {
+            body = Json.createObjectBuilder().add("error", ex.getMessage()).build();
+            return ResponseEntity.internalServerError().body(body.toString());
+        }
+    }
+
+    @PutMapping(path="/boardgame/{boardGameId}")
+    public ResponseEntity<Checkers> updateBoardGame(@RequestBody Checkers checkerObj) {
+        int mResult = service.update(checkerObj);
+        if (mResult > 0)
+            checkerObj.setUpdateCount(mResult);
+        return ResponseEntity.ok(checkerObj);
     }
 
 }

@@ -1,4 +1,4 @@
-package vttp.workshop16.workshop16.model;
+package project.workshop16.workshop16app.model;
 
 public class Rulebook {
     private long totalCount;

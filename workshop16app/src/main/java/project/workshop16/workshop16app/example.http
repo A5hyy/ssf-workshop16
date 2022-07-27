@@ -1,0 +1,12 @@
+###Extension: Rest Client
+
+POST http://localhost:8080/api/boardgame HTTP/1.1
+content-type: application/json
+
+###
+GET http://localhost:8080/api/boardgame/2 HTTP/1.1
+content-type: application/json
+
+###
+PUT http://localhost:8080/api/boardgame HTTP/1.1
+content-type: application/json
